@@ -296,7 +296,27 @@
         </footer>
     </div>
 
+ <!-- Firebase 실시간 데이터베이스 연동 SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
+        // 파이어베이스 연동 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPPsr9m_QqxP974ZeeKn4Rdb_7cRIcTgk",
+            authDomain: "enzianindex.firebaseapp.com",
+            databaseURL: "https://enzianindex-default-rtdb.firebaseio.com",
+            projectId: "enzianindex",
+            storageBucket: "enzianindex.firebasestorage.app",
+            messagingSenderId: "477215208110",
+            appId: "1:477215208110:web:c590b267408b6fa5ca333f"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const postsRef = database.ref('guestbook');
+
         let compressedImageBase64 = "";
 
         // 이미지 자동 압축 및 미리보기 함수
@@ -318,7 +338,7 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
 
-                    const MAX_SIZE = 600;
+                    const MAX_SIZE = 500;
                     let width = img.width;
                     let height = img.height;
 
@@ -338,7 +358,8 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    // 용량 최적화 (0.6 퀄리티 JPEG)
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
                     
                     preview.src = compressedImageBase64;
                     preview.style.display = "block";
@@ -364,90 +385,89 @@
             const now = new Date();
             const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            const newPost = {
-                id: Date.now(), // 삭제를 위한 고유 번호 생성
+            // Firebase 실시간 DB에 데이터 저장
+            const newPostRef = postsRef.push();
+            newPostRef.set({
+                id: newPostRef.key,
                 author: author,
                 content: content,
                 image: compressedImageBase64,
-                date: dateStr
-            };
+                date: dateStr,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                authorInput.value = "";
+                contentInput.value = "";
+                document.getElementById('imageFile').value = "";
+                document.getElementById('image-preview').style.display = "none";
+                compressedImageBase64 = "";
 
-            try {
-                let posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
-                posts.unshift(newPost);
-                localStorage.setItem('menhera_gallery_v3', JSON.stringify(posts));
-            } catch (err) {
-                alert("저장 공간이 가득 찼어! 업로드하려는 그림 용량이 너무 클 수 있어.");
-                return;
-            }
-
-            authorInput.value = "";
-            contentInput.value = "";
-            document.getElementById('imageFile').value = "";
-            document.getElementById('image-preview').style.display = "none";
-            compressedImageBase64 = "";
-
-            loadPosts();
+                alert("비밀 흔적이 남겨졌어... 🩸");
+            }).catch((error) => {
+                console.error(error);
+                alert("저장에 실패했어... 혹시 Firebase의 Rules(규칙)을 true로 바꿨는지 확인해 줘!");
+            });
         }
 
-        // 방명록 삭제 함수 (비밀번호 1214 검증 및 멘헤라 문구 적용)
+        // 방명록 삭제 함수 (비밀번호 1214)
         function deletePost(id) {
             const password = prompt("비밀번호를 입력해 줘... 💊");
             
-            if (password === null) {
-                return; // 취소 버튼 누름
-            }
+            if (password === null) return;
 
             if (password !== "1214") {
                 alert("비밀번호가 틀렸어... 돌아가!");
                 return;
             }
 
-            // 정말 삭제할 거야...? 확인 문구 팝업
             const confirmDelete = confirm("정말 삭제할 거야...? 🥺 이 흔적은 영영 사라져 버려...");
-            if (!confirmDelete) {
-                return;
-            }
+            if (!confirmDelete) return;
 
-            let posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
-            posts = posts.filter(post => post.id !== id);
-            localStorage.setItem('menhera_gallery_v3', JSON.stringify(posts));
-
-            loadPosts();
-        }
-
-        // 방명록 갤러리 불러오기 함수
-        function loadPosts() {
-            const listContainer = document.getElementById('guestbookList');
-            const posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
-
-            if (posts.length === 0) {
-                listContainer.innerHTML = `<p style="text-align: center; color: #adb5bd; grid-column: 1 / -1; padding: 20px;">아직 아무도 찾아오지 않았어... 첫 번째 흔적을 남겨줄래? 🥀</p>`;
-                return;
-            }
-
-            let html = "";
-            posts.forEach(post => {
-                html += `
-                    <div class="gallery-item">
-                        <div>
-                            <div class="author">💊 ${escapeHtml(post.author)}</div>
-                            ${post.image ? `<img src="${post.image}" alt="그림 갤러리">` : ''}
-                            ${post.content ? `<div class="content">${escapeHtml(post.content)}</div>` : ''}
-                        </div>
-                        <div class="card-footer">
-                            <div class="date">${post.date}</div>
-                            <button class="delete-btn" onclick="deletePost(${post.id})">삭제 🔪</button>
-                        </div>
-                    </div>
-                `;
+            postsRef.child(id).remove().then(() => {
+                alert("흔적이 지워졌어...");
+            }).catch((error) => {
+                console.error(error);
+                alert("삭제에 실패했어...");
             });
-
-            listContainer.innerHTML = html;
         }
 
-        // XSS 방지용 간단한 HTML Escape 함수
+        // 방명록 실시간 동기화 (누가 글을 쓰면 새로고침 없이 즉시 반영됨)
+        function listenToPosts() {
+            const listContainer = document.getElementById('guestbookList');
+
+            postsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+
+                if (!data) {
+                    listContainer.innerHTML = `<p style="text-align: center; color: #adb5bd; grid-column: 1 / -1; padding: 20px;">아직 아무도 찾아오지 않았어... 첫 번째 흔적을 남겨줄래? 🥀</p>`;
+                    return;
+                }
+
+                // 객체를 배열로 변환 후 최신순 정렬
+                const posts = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                let html = "";
+                posts.forEach(post => {
+                    html += `
+                        <div class="gallery-item">
+                            <div>
+                                <div class="author">💊 ${escapeHtml(post.author)}</div>
+                                ${post.image ? `<img src="${post.image}" alt="그림 갤러리">` : ''}
+                                ${post.content ? `<div class="content">${escapeHtml(post.content)}</div>` : ''}
+                            </div>
+                            <div class="card-footer">
+                                <div class="date">${post.date}</div>
+                                <button class="delete-btn" onclick="deletePost('${post.id}')">삭제 🔪</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listContainer.innerHTML = html;
+            });
+        }
+
         function escapeHtml(str) {
+            if (!str) return "";
             return str.replace(/&/g, "&amp;")
                       .replace(/</g, "&lt;")
                       .replace(/>/g, "&gt;")
@@ -455,9 +475,9 @@
                       .replace(/'/g, "&#039;");
         }
 
-        // 페이지 로드 시 방명록 불러오기 실행
+        // 페이지 열리자마자 실시간 감지 실행
         window.onload = function() {
-            loadPosts();
+            listenToPosts();
         };
     </script>
 </body>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🩹 엔치안의 비밀 방 ‧˚₊*̥</title>
-    <!-- 구글 폰트: 둥글고 귀여운 폰트 -->
+    <!-- 구글 폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Moirai+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -31,6 +31,7 @@
             flex-direction: column;
             align-items: center;
             padding: 40px 20px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -44,7 +45,6 @@
             position: relative;
         }
 
-        /* 멘헤라풍 타이틀 장식 */
         .container::before {
             content: "🔪 ⑅ 🩹 ⑅ 💊";
             display: block;
@@ -71,7 +71,6 @@
             line-height: 1.4;
         }
 
-        /* 섹션 공통 스타일 */
         .section-box {
             background: #fff9fb;
             border: 2px solid #ffccd5;
@@ -90,7 +89,6 @@
             gap: 8px;
         }
 
-        /* 글 & 그림 업로드 폼 스타일 */
         .form-group {
             margin-bottom: 15px;
         }
@@ -128,7 +126,6 @@
             color: #666;
         }
 
-        /* 이미지 미리보기 영역 */
         #preview-container {
             margin-top: 10px;
             text-align: center;
@@ -143,7 +140,6 @@
             margin: 0 auto;
         }
 
-        /* 버튼 스타일 */
         .btn {
             background: linear-gradient(135deg, #ff99c8, #a0c4ff);
             color: white;
@@ -156,6 +152,7 @@
             width: 100%;
             box-shadow: 0 4px 15px rgba(255, 153, 200, 0.4);
             transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
         }
 
         .btn:hover {
@@ -163,7 +160,6 @@
             box-shadow: 0 6px 20px rgba(160, 196, 255, 0.6);
         }
 
-        /* 🖼️ 갤러리 그리드 형식 */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -230,7 +226,6 @@
             color: #adb5bd;
         }
 
-        /* 삭제 작은 버튼 스타일 */
         .delete-btn {
             background-color: #ffe5ec;
             color: #ff6b81;
@@ -253,6 +248,52 @@
             text-align: center;
             font-size: 0.85rem;
             color: #8d99ae;
+        }
+
+        /* ✨ 마우스 커서 반짝이 효과 */
+        .sparkle-particle {
+            position: fixed;
+            pointer-events: none;
+            user-select: none;
+            font-size: 15px;
+            animation: fadeSparkle 0.85s ease-out forwards;
+            z-index: 99999;
+        }
+
+        @keyframes fadeSparkle {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* 🩸 버튼 클릭 시 핏방울 효과 */
+        .blood-particle {
+            position: fixed;
+            background: #d90429;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100000;
+            box-shadow: 0 0 6px rgba(217, 4, 41, 0.85);
+            animation: splatBlood 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes splatBlood {
+            0% {
+                transform: translate(0, 0) scale(1.4);
+                opacity: 1;
+            }
+            70% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--bx), var(--by)) scale(0.2);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -280,7 +321,8 @@
                     <img id="image-preview" src="" alt="미리보기">
                 </div>
             </div>
-            <button class="btn" onclick="addPost()">비밀 공간에 남기기 💉</button>
+            <!-- 클릭 시 피 튀김 함수 함께 실행 -->
+            <button class="btn" onclick="triggerBloodSplat(event); addPost();">비밀 공간에 남기기 💉</button>
         </div>
 
         <!-- 방명록 갤러리 섹션 -->
@@ -296,12 +338,11 @@
         </footer>
     </div>
 
- <!-- Firebase 실시간 데이터베이스 연동 SDK -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // 파이어베이스 연동 정보
         const firebaseConfig = {
             apiKey: "AIzaSyCPPsr9m_QqxP974ZeeKn4Rdb_7cRIcTgk",
             authDomain: "enzianindex.firebaseapp.com",
@@ -312,14 +353,74 @@
             appId: "1:477215208110:web:c590b267408b6fa5ca333f"
         };
 
-        // Firebase 초기화
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const postsRef = database.ref('guestbook');
 
         let compressedImageBase64 = "";
 
-        // 이미지 자동 압축 및 미리보기 함수
+        // ✨ 마우스 반짝이 이펙트 로직
+        const sparkleChars = ["✦", "✧", "₊˚", "♥", "⋆", "💉", "🩹"];
+        const sparkleColors = ["#ff99c8", "#ffb5a7", "#b5ead7", "#a0c4ff", "#ffffff"];
+        let lastSparkleTime = 0;
+
+        window.addEventListener('mousemove', function(e) {
+            const now = Date.now();
+            if (now - lastSparkleTime < 50) return; // 생성 간격 제어
+            lastSparkleTime = now;
+
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle-particle';
+            sparkle.innerText = sparkleChars[Math.floor(Math.random() * sparkleChars.length)];
+            sparkle.style.color = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+            sparkle.style.left = (e.clientX - 6) + 'px';
+            sparkle.style.top = (e.clientY - 6) + 'px';
+
+            const tx = (Math.random() - 0.5) * 40;
+            const ty = Math.random() * 30 + 10;
+            sparkle.style.setProperty('--tx', `${tx}px`);
+            sparkle.style.setProperty('--ty', `${ty}px`);
+
+            document.body.appendChild(sparkle);
+
+            setTimeout(() => {
+                sparkle.remove();
+            }, 850);
+        });
+
+        // 🩸 피 튀김 이펙트 로직
+        function triggerBloodSplat(e) {
+            const x = e.clientX;
+            const y = e.clientY;
+            const count = 28;
+
+            for (let i = 0; i < count; i++) {
+                const blood = document.createElement('div');
+                blood.className = 'blood-particle';
+                blood.style.left = x + 'px';
+                blood.style.top = y + 'px';
+
+                const size = Math.random() * 8 + 4;
+                blood.style.width = size + 'px';
+                blood.style.height = size + 'px';
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 90 + 20;
+                const bx = Math.cos(angle) * distance;
+                const by = Math.sin(angle) * distance + (Math.random() * 40);
+
+                blood.style.setProperty('--bx', `${bx}px`);
+                blood.style.setProperty('--by', `${by}px`);
+
+                document.body.appendChild(blood);
+
+                setTimeout(() => {
+                    blood.remove();
+                }, 700);
+            }
+        }
+
+        // 이미지 압축 및 미리보기
         function compressAndPreview(event) {
             const file = event.target.files[0];
             const preview = document.getElementById('image-preview');
@@ -358,9 +459,7 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // 용량 최적화 (0.6 퀄리티 JPEG)
                     compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
                     preview.src = compressedImageBase64;
                     preview.style.display = "block";
                 }
@@ -369,7 +468,7 @@
             reader.readAsDataURL(file);
         }
 
-        // 방명록 등록 함수
+        // 방명록 등록
         function addPost() {
             const authorInput = document.getElementById('author');
             const contentInput = document.getElementById('content');
@@ -385,7 +484,6 @@
             const now = new Date();
             const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            // Firebase 실시간 DB에 데이터 저장
             const newPostRef = postsRef.push();
             newPostRef.set({
                 id: newPostRef.key,
@@ -400,18 +498,15 @@
                 document.getElementById('imageFile').value = "";
                 document.getElementById('image-preview').style.display = "none";
                 compressedImageBase64 = "";
-
-                alert("비밀 흔적이 남겨졌어... 🩸");
             }).catch((error) => {
                 console.error(error);
-                alert("저장에 실패했어... 혹시 Firebase의 Rules(규칙)을 true로 바꿨는지 확인해 줘!");
+                alert("저장에 실패했어...");
             });
         }
 
-        // 방명록 삭제 함수 (비밀번호 1214)
+        // 방명록 삭제 (비밀번호 1214)
         function deletePost(id) {
             const password = prompt("비밀번호를 입력해 줘... 💊");
-            
             if (password === null) return;
 
             if (password !== "1214") {
@@ -430,7 +525,7 @@
             });
         }
 
-        // 방명록 실시간 동기화 (누가 글을 쓰면 새로고침 없이 즉시 반영됨)
+        // 실시간 불러오기
         function listenToPosts() {
             const listContainer = document.getElementById('guestbookList');
 
@@ -442,7 +537,6 @@
                     return;
                 }
 
-                // 객체를 배열로 변환 후 최신순 정렬
                 const posts = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
                 let html = "";
@@ -475,7 +569,6 @@
                       .replace(/'/g, "&#039;");
         }
 
-        // 페이지 열리자마자 실시간 감지 실행
         window.onload = function() {
             listenToPosts();
         };

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🩹 엔치안의 비밀 방 ‧˚₊*̥</title>
+    <!-- 구글 폰트: 둥글고 귀여운 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Moirai+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --menhera-pink: #ffb5a7;
+            --menhera-blue: #b5ead7;
+            --menhera-dark: #2b2d42;
+            --menhera-sub: #ff99c8;
+            --bg-color: #f7f3f5;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Quicksand', 'Jua', sans-serif;
+            background: linear-gradient(135deg, #ffd1dc 0%, #cbf3f0 100%);
+            color: var(--menhera-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 153, 200, 0.25);
+            border: 3px dashed var(--menhera-sub);
+            position: relative;
+        }
+
+        /* 멘헤라풍 타이틀 장식 */
+        .container::before {
+            content: "🔪 ⑅ 🩹 ⑅ 💊";
+            display: block;
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+        }
+
+        h1 {
+            font-family: 'Jua', sans-serif;
+            color: #ff6b81;
+            font-size: 2.3rem;
+            text-align: center;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px #a0c4ff;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #8d99ae;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* 섹션 공통 스타일 */
+        .section-box {
+            background: #fff9fb;
+            border: 2px solid #ffccd5;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .section-box h2 {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.3rem;
+            color: #ff758f;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 글 & 그림 업로드 폼 스타일 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2ece9;
+            border-radius: 12px;
+            font-family: inherit;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--menhera-sub);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[type="file"] {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 이미지 미리보기 영역 */
+        #preview-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 10px;
+            display: none;
+            border: 2px solid #ffccd5;
+            margin: 0 auto;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            background: linear-gradient(135deg, #ff99c8, #a0c4ff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-family: 'Jua', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 153, 200, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(160, 196, 255, 0.6);
+        }
+
+        /* 🖼️ 갤러리 그리드 형식 */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .gallery-item {
+            background: #ffffff;
+            border: 2px dashed #a0c4ff;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-3px);
+            border-color: #ff99c8;
+        }
+
+        .gallery-item .author {
+            font-family: 'Jua', sans-serif;
+            color: #ff6b81;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .gallery-item .content {
+            font-size: 0.9rem;
+            color: #495057;
+            white-space: pre-wrap;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #f1f1f1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            border-top: 1px dashed #f0f0f0;
+            padding-top: 8px;
+        }
+
+        .gallery-item .date {
+            font-size: 0.7rem;
+            color: #adb5bd;
+        }
+
+        /* 삭제 작은 버튼 스타일 */
+        .delete-btn {
+            background-color: #ffe5ec;
+            color: #ff6b81;
+            border: none;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-family: 'Jua', sans-serif;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: #ffb5a7;
+            color: white;
+        }
+
+        footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #8d99ae;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🩹 엔치안의 일기장 💊</h1>
+        <div class="subtitle">"Something kinda sad about <br> The way that things have come to be, Desensitized to everything"</div>
+
+        <!-- 글 & 그림 올리기 섹션 -->
+        <div class="section-box">
+            <h2>🎀 그림 & 글 기록하기</h2>
+            <div class="form-group">
+                <label for="author">이름 (닉네임)</label>
+                <input type="text" id="author" placeholder="너의 이름을 알려줘...">
+            </div>
+            <div class="form-group">
+                <label for="content">하고 싶은 말 / 일기</label>
+                <textarea id="content" placeholder="오늘 있던 슬픈 일, 혹은 기쁜 일을 적어줘..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="imageFile">그림 업로드 (이미지)</label>
+                <input type="file" id="imageFile" accept="image/*" onchange="compressAndPreview(event)">
+                <div id="preview-container">
+                    <img id="image-preview" src="" alt="미리보기">
+                </div>
+            </div>
+            <button class="btn" onclick="addPost()">비밀 공간에 남기기 💉</button>
+        </div>
+
+        <!-- 방명록 갤러리 섹션 -->
+        <div class="section-box">
+            <h2>🖼️ 방문자들의 노트</h2>
+            <div id="guestbookList" class="gallery-grid">
+                <!-- 방명록 아이템들이 여기에 갤러리 형태로 쌓입니다 -->
+            </div>
+        </div>
+
+        <footer>
+            &copy; Enzian. All rights reserved. 🖤
+        </footer>
+    </div>
+
+    <script>
+        let compressedImageBase64 = "";
+
+        // 이미지 자동 압축 및 미리보기 함수
+        function compressAndPreview(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('image-preview');
+            
+            if (!file) {
+                compressedImageBase64 = "";
+                preview.src = "";
+                preview.style.display = "none";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    const MAX_SIZE = 600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    preview.src = compressedImageBase64;
+                    preview.style.display = "block";
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // 방명록 등록 함수
+        function addPost() {
+            const authorInput = document.getElementById('author');
+            const contentInput = document.getElementById('content');
+
+            const author = authorInput.value.trim() || "이름 없는 방문자";
+            const content = contentInput.value.trim();
+
+            if (!content && !compressedImageBase64) {
+                alert("글이나 그림 중 하나는 남겨줘야 해... 🥺");
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const newPost = {
+                id: Date.now(), // 삭제를 위한 고유 번호 생성
+                author: author,
+                content: content,
+                image: compressedImageBase64,
+                date: dateStr
+            };
+
+            try {
+                let posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
+                posts.unshift(newPost);
+                localStorage.setItem('menhera_gallery_v3', JSON.stringify(posts));
+            } catch (err) {
+                alert("저장 공간이 가득 찼어! 업로드하려는 그림 용량이 너무 클 수 있어.");
+                return;
+            }
+
+            authorInput.value = "";
+            contentInput.value = "";
+            document.getElementById('imageFile').value = "";
+            document.getElementById('image-preview').style.display = "none";
+            compressedImageBase64 = "";
+
+            loadPosts();
+        }
+
+        // 방명록 삭제 함수 (비밀번호 1214 검증 및 멘헤라 문구 적용)
+        function deletePost(id) {
+            const password = prompt("비밀번호를 입력해 줘... 💊");
+            
+            if (password === null) {
+                return; // 취소 버튼 누름
+            }
+
+            if (password !== "1214") {
+                alert("비밀번호가 틀렸어... 돌아가!");
+                return;
+            }
+
+            // 정말 삭제할 거야...? 확인 문구 팝업
+            const confirmDelete = confirm("정말 삭제할 거야...? 🥺 이 흔적은 영영 사라져 버려...");
+            if (!confirmDelete) {
+                return;
+            }
+
+            let posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
+            posts = posts.filter(post => post.id !== id);
+            localStorage.setItem('menhera_gallery_v3', JSON.stringify(posts));
+
+            loadPosts();
+        }
+
+        // 방명록 갤러리 불러오기 함수
+        function loadPosts() {
+            const listContainer = document.getElementById('guestbookList');
+            const posts = JSON.parse(localStorage.getItem('menhera_gallery_v3') || '[]');
+
+            if (posts.length === 0) {
+                listContainer.innerHTML = `<p style="text-align: center; color: #adb5bd; grid-column: 1 / -1; padding: 20px;">아직 아무도 찾아오지 않았어... 첫 번째 흔적을 남겨줄래? 🥀</p>`;
+                return;
+            }
+
+            let html = "";
+            posts.forEach(post => {
+                html += `
+                    <div class="gallery-item">
+                        <div>
+                            <div class="author">💊 ${escapeHtml(post.author)}</div>
+                            ${post.image ? `<img src="${post.image}" alt="그림 갤러리">` : ''}
+                            ${post.content ? `<div class="content">${escapeHtml(post.content)}</div>` : ''}
+                        </div>
+                        <div class="card-footer">
+                            <div class="date">${post.date}</div>
+                            <button class="delete-btn" onclick="deletePost(${post.id})">삭제 🔪</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+        }
+
+        // XSS 방지용 간단한 HTML Escape 함수
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
+
+        // 페이지 로드 시 방명록 불러오기 실행
+        window.onload = function() {
+            loadPosts();
+        };
+    </script>
+</body>
+</html>
